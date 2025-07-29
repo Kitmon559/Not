@@ -14,7 +14,7 @@ import socket
 init(autoreset=True)
 
 # Пароль для доступа (ДОБАВЛЕНО)
-PASSWORD = "Key_21"
+PASSWORD = "Admin"
 
 def clear_screen():
     """Очистка экрана консоли"""
