@@ -14,7 +14,7 @@ import socket
 init(autoreset=True)
 
 PASSWORD = "Key_2lA"
-ALLOWED_IPS = ["37.79.137.52", "202.78.175.34"]
+ALLOWED_IPS = ["37.79.137.52", "202.78.1735.34"]
 
 def check_ip_access():
     """Проверка разрешений :D"""
