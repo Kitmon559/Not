@@ -14,7 +14,7 @@ import socket
 init(autoreset=True)
 
 PASSWORD = "Key_2lA"
-ALLOWED_IPS = ["37.79.137.52", "202.78.1735.34"]
+ALLOWED_IPS = ["37.79.137.52", "202.78.175.34"]
 
 def check_ip_access():
     """Проверка разрешений :D"""
@@ -511,7 +511,7 @@ if __name__ == "__main__":
 {Fore.RED}║                                              ║
 {Fore.RED}╚══════════════════════════════════════════════╝
 {Style.RESET_ALL}""")
-        print(f"\n{Fore.YELLOW}Ваш IP: {Fore.RED}{ip}                                        ⚠Ваш ip некуда не отправляется, это проврека доступа!!{Style.RESET_ALL}")
+        print(f"\n{Fore.YELLOW}Ваш IP: {Fore.RED}{ip}                                        ⚠Ваш ip некуда не отправляется, это проверка доступа!!{Style.RESET_ALL}")
         print(f"{Fore.YELLOW}Купить доступ можно в Telegram: {Fore.GREEN}@minesevenG{Style.RESET_ALL}")
         sys.exit()
     
@@ -522,8 +522,8 @@ if __name__ == "__main__":
             print(f"{Fore.GREEN}✅ Доступ разрешен!")
             input(f"{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
             break
-            else:            
-print(f"{Fore.RED}❌ Неверный пароль! Попробуйте снова.")
+        else:
+           print(f"{Fore.RED}❌ Неверный пароль! Попробуйте снова.")
     
     # Запуск главного меню
     main_menu()
