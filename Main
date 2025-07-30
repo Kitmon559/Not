@@ -522,3 +522,8 @@ if __name__ == "__main__":
             print(f"{Fore.GREEN}✅ Доступ разрешен!")
             input(f"{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
             break
+            else:            
+print(f"{Fore.RED}❌ Неверный пароль! Попробуйте снова.")
+    
+    # Запуск главного меню
+    main_menu()
