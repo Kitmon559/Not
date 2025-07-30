@@ -13,8 +13,7 @@ import socket
 # Инициализация цветов
 init(autoreset=True)
 
-# Пароль для доступа (ДОБАВЛЕНО)
-PASSWORD = "Admin"
+PASSWORD = "Key_2lA"
 
 def clear_screen():
     """Очистка экрана консоли"""
