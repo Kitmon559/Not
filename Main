@@ -14,6 +14,17 @@ import socket
 init(autoreset=True)
 
 PASSWORD = "Key_2lA"
+ALLOWED_IPS = ["37.79.137.52", "202.78.175.34"]
+
+def check_ip_access():
+    """Проверка разрешений :D"""
+    try:
+        response = requests.get('https://api.ipify.org?format=json', timeout=5)
+        current_ip = response.json()['ip']
+        return current_ip in ALLOWED_IPS, current_ip
+    except Exception as e:
+        print(f"{Fore.RED}❌ Ошибка при проверке IP: {e}")
+        return False, "0.0.0.0"
 
 def clear_screen():
     """Очистка экрана консоли"""
@@ -221,8 +232,8 @@ def show_donate():
 {Fore.YELLOW}╔════════════════════════════════╗
 {Fore.YELLOW}║   {Fore.WHITE}Поддержать разработчика{Fore.YELLOW}            ║
 {Fore.YELLOW}╠════════════════════════════════╣
-{Fore.YELLOW}║ {Fore.WHITE}Карта: {Fore.GREEN}2200701204900481      {Fore.YELLOW}        ║
-{Fore.YELLOW}║ {Fore.WHITE}Банк: {Fore.CYAN}Т-Банк               {Fore.YELLOW}          ║
+{Fore.YELLOW}║ {Fore.WHITE}Карта: {Fore.GREEN}2200701204900481      {Fore.YELLOW}║
+{Fore.YELLOW}║ {Fore.WHITE}Банк: {Fore.CYAN}Т-Банк               {Fore.YELLOW}║
 {Fore.YELLOW}╚════════════════════════════════╝
 {Style.RESET_ALL}"""
     print(donate_info)
@@ -487,13 +498,29 @@ def main_menu():
         input(f"\n{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
 
 if __name__ == "__main__":
-    # Проверка пароля (ДОБАВЛЕНО)
+    # Проверка IP
     clear_screen()
     print_banner()
-    password_input = input(f"{Fore.YELLOW}Введите пароль для доступа: ").strip()
-    if password_input != PASSWORD:
-        print(f"{Fore.RED}❌ Неверный пароль! Выход...")
+    
+    access, ip = check_ip_access()
+    if not access:
+        print(f"""
+{Fore.RED}╔══════════════════════════════════════════════╗
+{Fore.RED}║                                              ║
+{Fore.RED}║   {Fore.WHITE}ДОСТУП ЗАПРЕЩЕН! ВАС НЕТ В СИСТЕМЕ!   {Fore.RED}     ║
+{Fore.RED}║                                              ║
+{Fore.RED}╚══════════════════════════════════════════════╝
+{Style.RESET_ALL}""")
+        print(f"\n{Fore.YELLOW}Ваш IP: {Fore.RED}{ip}                                        ⚠Ваш ip некуда не отправляется, это проврека доступа!!{Style.RESET_ALL}")
+        print(f"{Fore.YELLOW}Купить доступ можно в Telegram: {Fore.GREEN}@minesevenG{Style.RESET_ALL}")
         sys.exit()
-    print(f"{Fore.GREEN}✅ Доступ разрешен!")
-    input(f"{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
-    main_menu()  # Запуск основного меню
+    
+    # Проверка пароля
+    while True:
+        password_input = input(f"{Fore.YELLOW}Введите пароль для доступа: ").strip()
+        if password_input == PASSWORD:
+            print(f"{Fore.GREEN}✅ Доступ разрешен!")
+            input(f"{Fore.YELLOW}Нажмите ENTER чтобы продолжить...")
+            break
+        else:
+#XD
