@@ -13,8 +13,8 @@ import socket
 # Инициализация цветов
 init(autoreset=True)
 
-PASSWORD = "Artem"
-ALLOWED_IPS = ["37.79.137.52", "202.78.175.34", "37.73.16.107", "31.43.60.161", "80.93.123.228", "77.109.59.116", "192.168.50.106"]
+PASSWORD = "Admin"
+ALLOWED_IPS = ["37.79.137.52"]
 
 
 def check_ip_access():
@@ -553,7 +553,7 @@ if __name__ == "__main__":
         print(f"""
 {Fore.RED}╔══════════════════════════════════════════════╗
 {Fore.RED}║                                              ║
-{Fore.RED}║   {Fore.WHITE}ДОСТУП ЗАПРЕЩЕН! ВАС НЕТ В СИСТЕМЕ!   {Fore.RED}     ║
+{Fore.RED}║   {Fore.WHITE}ДОСТУП ЗАПРЕЩЕН! ПРОГРАММА ВЫКЛЮЧЕНА!   {Fore.RED}     ║
 {Fore.RED}║                                              ║
 {Fore.RED}╚══════════════════════════════════════════════╝
 {Style.RESET_ALL}""")
