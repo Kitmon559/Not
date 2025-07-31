@@ -557,7 +557,7 @@ if __name__ == "__main__":
 {Fore.RED}║                                              ║
 {Fore.RED}╚══════════════════════════════════════════════╝
 {Style.RESET_ALL}""")
-        print(f"\n{Fore.YELLOW}Ваш IP: {Fore.RED}{ip}                                             ⚠Ваш ip некуда не отправляется, это проверка доступа!!{Style.RESET_ALL}")
+        print(f"\n{Fore.YELLOW}Ваш IP: {Fore.RED}{ip}                                                  ⚠Ваш ip некуда не отправляется, это проверка доступа!!{Style.RESET_ALL}")
         print(f"{Fore.YELLOW}Купить доступ можно в Telegram: {Fore.GREEN}@minesevenG{Style.RESET_ALL}")
         sys.exit()
     
