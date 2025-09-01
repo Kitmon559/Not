@@ -13,8 +13,8 @@ import socket
 # Инициализация цветов
 init(autoreset=True)
 
-PASSWORD = "Admin"
-ALLOWED_IPS = ["0"]
+PASSWORD = "2b2t$8"
+ALLOWED_IPS = ["31.43.37.225," "94.50.255.226"]
 
 
 def check_ip_access():
