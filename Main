@@ -14,7 +14,7 @@ import socket
 init(autoreset=True)
 
 PASSWORD = "2b2t$8"
-ALLOWED_IPS = ["77.109.59.116", "94.50.255.226", "94.51.196.61"]
+ALLOWED_IPS = ["77.109.59.116", "94.50.255.226", "94.51.196.61", "31.43.37.162"]
 
 
 def check_ip_access():
