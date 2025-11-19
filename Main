@@ -18,7 +18,7 @@ ALLOWED_IPS = ["77.109.59.116", "94.50.255.226", "94.51.196.61", "31.43.37.162",
 
 
 def check_ip_access():
-    """Проверка разрешений :D"""
+    """Проверка разрешений"""
     try:
         response = requests.get('https://api.ipify.org?format=json', timeout=5)
         current_ip = response.json()['ip']
