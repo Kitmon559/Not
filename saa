@@ -1,1 +1,408 @@
-32
+3import os
+import random
+import re
+import string
+import requests
+from bs4 import BeautifulSoup
+
+BOT_TOKEN = "8973094993:AAG3C2KBx2WeJD9EC_F-Tz4zV0mrppE7kNA"
+CHAT_ID = -1004317209102
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                  "Chrome/124.0.0.0 Safari/537.36",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+# ============ УТИЛИТЫ ============
+def clear():
+    try:
+        os.system("cls" if os.name == "nt" else "clear")
+    except Exception:
+        print("\033[H\033[J", end="")
+
+
+def send_to_telegram(text):
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    try:
+        r = requests.post(url, data={
+            "chat_id": CHAT_ID, "text": text,
+            "parse_mode": "HTML", "disable_web_page_preview": True,
+        }, timeout=15)
+        d = r.json()
+        if not d.get("ok"):
+            print(f"[TG ERROR] {d}")
+            return False
+        return True
+    except Exception as e:
+        print(f"[TG EXCEPTION] {e}")
+        return False
+
+
+def ask(prompt, default=""):
+    v = input(prompt).strip()
+    return v if v else default
+
+
+def ask_yn(prompt, default=True):
+    d = "y" if default else "n"
+    v = input(f"{prompt} (y/n, по умолч. {d}): ").strip().lower()
+    return default if not v else v in ("y", "yes", "д", "да", "1")
+
+
+def pause():
+    input("\n[Enter] — назад в меню...")
+
+
+# ============ ПРОВЕРКА TG ============
+def check_telegram(username):
+    """
+    exists=True  → ЗАНЯТ
+    exists=False → СВОБОДЕН
+    exists=None  → ошибка сети
+    """
+    username = username.lstrip("@").strip().lower()
+    url = f"https://t.me/{username}"
+
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15, allow_redirects=True)
+        if r.status_code == 404:
+            return {"exists": False}
+
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        title_block = soup.find("div", class_="tgme_page_title")
+        if title_block and title_block.get_text(strip=True):
+            return {"exists": True, "name": title_block.get_text(strip=True)}
+
+        title_meta = soup.find("meta", property="og:title")
+        desc_meta = soup.find("meta", property="og:description")
+        title = title_meta["content"].strip() if title_meta and title_meta.get("content") else ""
+        desc = desc_meta["content"].strip() if desc_meta and desc_meta.get("content") else ""
+        low_desc = desc.lower()
+
+        if ("if you have telegram" in low_desc
+                or "you can contact" in low_desc
+                or "preview channel" in low_desc
+                or not desc):
+            return {"exists": False}
+
+        if title and title.lower() not in ("telegram", "telegram: contact"):
+            return {"exists": True, "name": title}
+
+        return {"exists": False}
+
+    except Exception:
+        return {"exists": None}
+
+
+# ============ ПРОВЕРКА FRAGMENT ============
+def check_fragment(username):
+    """
+    exists=True + on_sale=True  → продаётся
+    exists=True + on_sale=False → есть на Fragment (занят/taken)
+    exists=False                → не выставлен
+    """
+    username = username.lstrip("@").strip().lower()
+    url = f"https://fragment.com/username/{username}"
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=15, allow_redirects=True)
+
+        if r.status_code == 404:
+            return {"exists": False, "on_sale": False, "taken": False,
+                    "price_ton": None, "price_usd": None, "url": url}
+        if r.status_code != 200:
+            return {"exists": False, "on_sale": False, "taken": False,
+                    "price_ton": None, "price_usd": None, "url": url}
+        if "/username/" not in r.url:
+            return {"exists": False, "on_sale": False, "taken": False,
+                    "price_ton": None, "price_usd": None, "url": url}
+
+        soup = BeautifulSoup(r.text, "html.parser")
+        text_all = soup.get_text(" ", strip=True)
+        text_low = text_all.lower()
+
+        price_ton = None
+        price_usd = None
+
+        for el in soup.find_all(class_=re.compile(r"tm-value", re.I)):
+            txt = el.get_text(" ", strip=True)
+            m = re.search(r"([\d][\d\s.,]*)\s*TON", txt)
+            if m:
+                try:
+                    price_ton = float(m.group(1).replace(" ", "").replace(",", "."))
+                    break
+                except ValueError:
+                    pass
+            m2 = re.search(r"^([\d][\d\s.,]*)$", txt)
+            if m2:
+                try:
+                    price_ton = float(m2.group(1).replace(" ", "").replace(",", "."))
+                    break
+                except ValueError:
+                    pass
+
+        if price_ton is None:
+            m = re.search(r"([\d]{1,3}(?:[\s.,]\d{3})*(?:[.,]\d+)?)\s*TON", text_all)
+            if m:
+                try:
+                    price_ton = float(m.group(1).replace(" ", "").replace(",", "."))
+                except ValueError:
+                    pass
+
+        mu = re.search(r"\$\s*([\d.,]+)", text_all)
+        if mu:
+            try:
+                price_usd = float(mu.group(1).replace(",", ""))
+            except ValueError:
+                pass
+
+        taken = ("taken" in text_low) or ("sold" in text_low)
+        has_buy = any(k in text_low for k in
+                      ["buy now", "place bid", "on sale", "for sale",
+                       "on auction", "buy for"])
+
+        on_sale = False
+        if price_ton is not None and not taken:
+            on_sale = True
+        elif has_buy and not taken:
+            on_sale = True
+
+        return {"exists": True, "on_sale": on_sale, "taken": taken,
+                "price_ton": price_ton, "price_usd": price_usd, "url": url}
+
+    except Exception as e:
+        return {"exists": False, "on_sale": False, "taken": False,
+                "price_ton": None, "price_usd": None, "url": url, "error": str(e)}
+
+
+# ============ ОБЪЕДИНЁННАЯ ПРОВЕРКА ============
+def check_one(username):
+    fr = check_fragment(username)
+    tg = check_telegram(username)
+    return {"username": username.lstrip("@").lower(), "tg": tg, "fragment": fr}
+
+
+# ============ ФОРМАТ ОТЧЁТА ============
+def format_report(title, results):
+    lines = [f"<b>{title}</b>\n"]
+    for it in results:
+        u = it["username"]
+        tg = it["tg"]
+        fr = it["fragment"]
+
+        if tg["exists"] is True:
+            tg_line = "🟢 Занят"
+        elif tg["exists"] is False:
+            tg_line = "⚪️ Свободен"
+        else:
+            tg_line = "⚠️ Не проверить"
+
+        if fr["on_sale"]:
+            p = f"{fr['price_ton']:.2f} TON" if fr["price_ton"] else "цена ?"
+            usd = f" (~${fr['price_usd']:.2f})" if fr["price_usd"] else ""
+            fr_line = f"💰 <b>Продаётся</b> — {p}{usd}"
+        elif fr["exists"]:
+            fr_line = "❌ На Fragment (не продаётся)"
+        else:
+            fr_line = "➖ Не выставлен"
+
+        lines.append(f"<b>@{u}</b>")
+        lines.append(f"  • TG: {tg_line}")
+        lines.append(f"  • Fragment: {fr_line}")
+        lines.append(f"  • <a href=\"{fr['url']}\">Открыть</a>")
+        lines.append("")
+    return "\n".join(lines)
+
+
+# ============ РЕЖИМ 1: ПРОВЕРКА ============
+def mode_check():
+    clear()
+    print("=" * 50)
+    print("            🔎 ПРОВЕРКА USERNAME")
+    print("=" * 50)
+
+    raw = ask("\nВведи username(ы) через запятую или пробел: ")
+    if not raw:
+        return
+
+    names = [x.strip().lstrip("@") for x in re.split(r"[,\s]+", raw) if x.strip()]
+    send_tg = ask_yn("\nОтправить отчёт в Telegram-группу?", default=True)
+
+    print()
+    results = []
+    for u in names:
+        r = check_one(u)
+        tg = r["tg"]
+        fr = r["fragment"]
+
+        tg_s = ("ЗАНЯТ" if tg["exists"] is True
+                else "СВОБОДЕН" if tg["exists"] is False
+                else "?")
+
+        if fr["on_sale"]:
+            fr_s = f"продаётся ({fr['price_ton']} TON)" if fr["price_ton"] else "продаётся"
+        elif fr["exists"]:
+            fr_s = "на Fragment (не продаётся)"
+        else:
+            fr_s = "не выставлен"
+
+        print(f"  @{u:<24} TG: {tg_s:<10} Fragment: {fr_s}")
+        results.append(r)
+
+    if send_tg:
+        if send_to_telegram(format_report("🔎 Проверка username", results)):
+            print("\n[TG] Отчёт отправлен ✅")
+
+    pause()
+
+
+# ============ РЕЖИМ 2: ГЕНЕРАТОР ============
+def mode_generator():
+    clear()
+    print("=" * 50)
+    print("       🎯 ГЕНЕРАТОР СВОБОДНЫХ USERNAME")
+    print("=" * 50)
+
+    while True:
+        prefix = ask("\nНачало username (латиница/цифры, например 'if'): ").strip().lower()
+        if prefix and re.fullmatch(r"[a-z0-9]+", prefix):
+            break
+        print("Только a-z и 0-9, минимум 1 символ.")
+
+    min_len = max(5, len(prefix) + 1)
+    while True:
+        try:
+            length = int(ask(f"Общая длина (от {min_len} до 32): "))
+            if min_len <= length <= 32:
+                break
+        except ValueError:
+            pass
+        print(f"Введи число от {min_len} до 32.")
+
+    print("\nЧто использовать после префикса:")
+    print("  1 — только буквы (a-z)")
+    print("  2 — только цифры (0-9)")
+    print("  3 — буквы + цифры")
+    while True:
+        mode = ask("Выбери (1/2/3, по умолч. 3): ", "3").strip()
+        if mode in ("1", "2", "3"):
+            break
+        print("Введи 1, 2 или 3.")
+
+    if mode == "1":
+        ab = string.ascii_lowercase
+        mode_name = "буквы"
+    elif mode == "2":
+        ab = string.digits
+        mode_name = "цифры"
+    else:
+        ab = string.ascii_lowercase + string.digits
+        mode_name = "буквы + цифры"
+
+    while True:
+        try:
+            want = int(ask("\nСколько свободных найти (Enter = 5): ", "5"))
+            if want > 0:
+                break
+        except ValueError:
+            pass
+
+    check_tg_flag = ask_yn("Проверять занятость в TG?", default=True)
+    send_tg = ask_yn("Отправлять каждый найденный в Telegram?", default=True)
+
+    suffix_len = length - len(prefix)
+
+    clear()
+    print("=" * 50)
+    print(f"  Префикс:    {prefix}")
+    print(f"  Длина:      {length} (суффикс {suffix_len} симв.)")
+    print(f"  Символы:    {mode_name}")
+    print(f"  Найти:      {want}")
+    print(f"  TG check:   {'да' if check_tg_flag else 'нет'}")
+    print("=" * 50)
+    print()
+
+    tried = 0
+    found = 0
+    seen = set()
+
+    while found < want:
+        suffix = "".join(random.choice(ab) for _ in range(suffix_len))
+        cand = (prefix + suffix).lower()
+
+        if cand in seen:
+            continue
+        seen.add(cand)
+        tried += 1
+
+        fr = check_fragment(cand)
+        if fr["exists"]:
+            if fr["on_sale"]:
+                print(f"  [{tried}] @{cand} — на Fragment (продаётся)")
+            else:
+                print(f"  [{tried}] @{cand} — на Fragment (не продаётся)")
+            continue
+
+        if check_tg_flag:
+            tg = check_telegram(cand)
+            if tg["exists"] is True:
+                print(f"  [{tried}] @{cand} — занят в TG")
+                continue
+            if tg["exists"] is None:
+                print(f"  [{tried}] @{cand} — ошибка TG, пропуск")
+                continue
+
+        found += 1
+        print(f"\n  ✅ [{tried}] @{cand}  —  СВОБОДЕН ({found}/{want})\n")
+
+        if send_tg:
+            msg = (
+                f"🎯 <b>Найден свободный username</b> ({found}/{want})\n\n"
+                f"✅ <code>@{cand}</code>\n\n"
+                f"TG: ⚪️ Свободен\n"
+                f"Fragment: ➖ Не выставлен\n"
+                f"Попытка: {tried}"
+            )
+            if send_to_telegram(msg):
+                print(f"  [TG] Отправлено ✅\n")
+            else:
+                print(f"  [TG] Ошибка ❌\n")
+
+    print(f"\n🎉 Готово! Найдено {found} за {tried} попыток.")
+    pause()
+
+
+# ============ МЕНЮ ============
+def main_menu():
+    clear()
+    print("=" * 50)
+    print("            📋 ГЛАВНОЕ МЕНЮ")
+    print("=" * 50)
+    print("  1. Проверить username")
+    print("  2. Генератор свободных username")
+    print("  0. Выход")
+    print("=" * 50)
+
+
+def main():
+    while True:
+        main_menu()
+        c = ask("\nВыбери пункт: ").strip()
+        if c == "1":
+            mode_check()
+        elif c == "2":
+            mode_generator()
+        elif c == "0":
+            clear()
+            print("Пока!")
+            break
+        else:
+            print("Не понял.")
+            pause()
+
+
+if __name__ == "__main__":
+    main()
